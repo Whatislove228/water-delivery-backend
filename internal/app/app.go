@@ -9,7 +9,10 @@ import (
 	"water-delivery/internal/config"
 	"water-delivery/internal/platform/db"
 	"water-delivery/internal/platform/logger"
+	postgresRepository "water-delivery/internal/repository/postgres"
+	"water-delivery/internal/service"
 	httptransport "water-delivery/internal/transport/http"
+	"water-delivery/internal/transport/http/handlers"
 
 	"go.uber.org/zap"
 )
@@ -34,11 +37,14 @@ func New(ctx context.Context) (*http.Server, func() error, error) {
 		return nil, nil, fmt.Errorf("connect postgres: %w", err)
 	}
 
-	_ = pool // поки просто тримаємо з'єднання живим
+	productRepository := postgresRepository.NewProductRepository(pool)
+	productService := service.NewProductService(productRepository)
+	productHandler := handlers.NewProductHandler(productService)
 
 	router := httptransport.NewRouter(httptransport.Dependencies{
-		Config: cfg,
-		Logger: log,
+		Config:         cfg,
+		Logger:         log,
+		ProductHandler: productHandler,
 	})
 
 	server := &http.Server{

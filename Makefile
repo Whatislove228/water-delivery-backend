@@ -18,3 +18,6 @@ migrate-up:
 
 migrate-down:
 	migrate -path ./migrations -database "$(DB_URL)" down 1
+
+seed-products:
+	docker compose exec -T postgres psql -U postgres -d water_delivery < ./seeds/products.sql

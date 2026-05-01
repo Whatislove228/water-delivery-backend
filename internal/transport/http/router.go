@@ -12,8 +12,9 @@ import (
 )
 
 type Dependencies struct {
-	Config config.Config
-	Logger *zap.Logger
+	Config         config.Config
+	Logger         *zap.Logger
+	ProductHandler *handlers.ProductHandler
 }
 
 func NewRouter(deps Dependencies) http.Handler {
@@ -25,6 +26,10 @@ func NewRouter(deps Dependencies) http.Handler {
 
 	healthHandler := handlers.NewHealthHandler(deps.Config)
 	r.Get("/health", healthHandler.ServeHTTP)
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/products", deps.ProductHandler.List)
+	})
 
 	return r
 }
